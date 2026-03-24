@@ -442,3 +442,37 @@ FodyWeavers.xsd
 .msix
 .msm
 .msp
+
+# [Visual Studio]
+.vs/
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docupdates
+IPCH/
+*.VC.db
+*.VC.opendb
+
+# [Unreal Engine - 필수 제외 폴더]
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# [Unreal Engine - 프로젝트 파일]
+*.xcodeproj
+*.xcworkspace
+*.bak
+*.setlib
+*.vswp
+
+# [External Libraries & Plugins]
+# 플러그인 내의 Binaries와 Intermediate도 제외해야 합니다.
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+
+# [Large Files - LFS 권장]
+# 만약 100MB가 넘는 에셋이 있다면 Git LFS를 써야 하지만, 
+# 일반적인 바이너리는 일단 제외하는 것이 원칙입니다.
