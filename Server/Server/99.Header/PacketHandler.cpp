@@ -21,17 +21,6 @@ void PacketHandler::handlePacket(char* buffer, uint16_t id, uint16 packetSize)
 		break;
 	}
 	
-	case PK_CS_SPAWN_UNIT:
-	{
-		handleUnitSpawn(packet, id);
-		break;
-	}
-	case PK_CS_MOVE_UNIT:
-	{
-		handleUnitMove(packet, id);
-		break;
-	}
-
 	}
 
 }
@@ -43,28 +32,4 @@ void PacketHandler::handleLogin(Packet& loginPacket, uint16_t id)
 	std::string nickName(reinterpret_cast<char*>(&loginPacket), loginPacket.size());
 
 	Game::get().setPlayer(std::make_shared<Player>(nickName), id);
-	Game::get().waitingRoom(id);
-}
-
-void PacketHandler::handleUnitSpawn(Packet& unitPacket, uint16_t id)
-{
-	uint16_t playerId = unitPacket.read<uint16_t>();
-	Vector2 spawnPos = unitPacket.read<Vector2>();
-
-	Game::get().spawnUnit(playerId, spawnPos);
-}
-
-void PacketHandler::handleUnitMove(Packet& unitMovePacket, uint16_t id)
-{
-	uint16_t playerId = unitMovePacket.read<uint16_t>();
-	Vector2 movePos = unitMovePacket.read<Vector2>();
-	uint16_t unitCount = unitMovePacket.read<uint16_t>();
-
-	for (int i = 0; i < unitCount; ++i)
-	{
-		uint16_t unitId = unitMovePacket.read<uint16_t>();
-
-		Game::get().moveUnit(playerId, unitId, movePos);
-	}
-	Game::get().attackUnit();
 }

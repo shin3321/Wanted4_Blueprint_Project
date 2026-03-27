@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "02.Network/SeverCore.h"
+#include "02.Network/ServerCore.h"
 #include "01.Game/Game.h"
 
 #include <fstream>

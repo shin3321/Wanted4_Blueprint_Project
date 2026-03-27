@@ -1,0 +1,24 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/PlayerController.h"
+#include "PlayerControllerBase.generated.h"
+
+/**
+ * 
+ */
+UCLASS(Blueprintable)
+class DEADBYDAYLIGHT_API APlayerControllerBase : public APlayerController
+{
+	GENERATED_BODY()
+public:
+	virtual void BeginPlay() override;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "PlayerControllerBase")
+	void SendLoginPacket(FString UserId, FString UserPw, bool IsKller);
+
+
+};

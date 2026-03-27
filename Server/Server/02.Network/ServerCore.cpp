@@ -183,18 +183,6 @@ void ServerCore::runWorkThread()
 			Game::get().recv(key, numbytes);
 			break;
 		}
-		case OP_TYPE::GAME_START:
-		{
-			Game::get().loadMap();
-			break;
-		}
-		case OP_TYPE::UNIT_ATTACK:
-		{
-			//쿼드 트리
-			Game::get().attackUnit();
-			Game::get().attackCastle();
-			break;
-		}
 
 		}
 
@@ -232,13 +220,6 @@ void ServerCore::doTimer()
 		case TimerEvent::EV_GAME_START:
 		{
 			timerOver->_type = OP_TYPE::GAME_START;
-			timerOver->_targetId = nextEvent.playerId;
-			PostQueuedCompletionStatus(_iocpHandle, 1, nextEvent.playerId, &timerOver->_overlapped);
-			break;
-		}
-		case TimerEvent::EV_UNIT_ATTACK:
-		{
-			timerOver->_type = OP_TYPE::UNIT_ATTACK;
 			timerOver->_targetId = nextEvent.playerId;
 			PostQueuedCompletionStatus(_iocpHandle, 1, nextEvent.playerId, &timerOver->_overlapped);
 			break;

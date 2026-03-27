@@ -7,7 +7,6 @@ using namespace std::chrono_literals;
 enum class TimerEvent
 {
 	EV_GAME_START = 1,
-	EV_UNIT_ATTACK, 
 };
 
 struct Timer
