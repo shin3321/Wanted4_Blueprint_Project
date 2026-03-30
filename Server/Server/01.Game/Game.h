@@ -31,7 +31,6 @@ public:
 	void closeSocket(int sessioneId);
 	void broadcast(const char* data, uint16 packetSize);
 
-
 	//setter,getter
 	//아이디에 맞는 세션을 반환	
 	void setPlayer(std::shared_ptr<Player> player, uint16_t playerId);
@@ -62,8 +61,8 @@ private:
 	std::mutex _tileLock;
 
 private:
-	std::map<uint16, std::shared_ptr<Session>> sessions;
-	std::map<uint16, std::shared_ptr<Player>> players;
+	std::unordered_map<uint16, std::shared_ptr<Session>> sessions;
+	std::unordered_map<uint16, std::shared_ptr<Player>> players;
 
 };
 

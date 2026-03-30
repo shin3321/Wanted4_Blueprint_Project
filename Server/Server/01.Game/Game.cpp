@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Game.h"
 #include "01.Game/Actor/GameSession.h"
-#include "99.Header/PacketHandler.h"
+#include "99.Header/PacketDispatcher.h"
 #include "01.Game/Actor/Session.h"
 #include "01.Game/Actor/Player.h"
 
@@ -45,7 +45,7 @@ void Game::accept(SOCKET socket)
 void Game::recv(uint16_t key, uint16_t numbytes)
 {
 	//받은 세션 아이디 확인
-	std::shared_ptr<Session> session = sessions[key];
+	auto session = getSession(key);
 	if (!session)
 	{
 		std::cout << "Invalid Session In Recv. Id: " << key << "\n";
@@ -63,8 +63,9 @@ void Game::recv(uint16_t key, uint16_t numbytes)
 		uint16_t packetSize = 0;
 		if (!session->_recvBuf.peek(reinterpret_cast<char*>(&packetSize), sizeof(uint16_t)))
 			break;
-		packetSize = ntohs(packetSize);
+
 		if (packetSize == 0) break;
+
 		//받은 리시브 버퍼의 크기가 패킷 사이즈보다 작으면 실패
 		if (session->_recvBuf.size() < packetSize)
 			break;
@@ -79,7 +80,7 @@ void Game::recv(uint16_t key, uint16_t numbytes)
 		}
 
 		//프로세스 패킷
-		PacketHandler::handlePacket(packet.data(), key, packetSize);
+		PacketDispatcher::get().onReceive(packet.data(), packetSize);
 	}
 	session->doRecv();
 }
@@ -125,7 +126,14 @@ void Game::setPlayer(std::shared_ptr<Player> player, uint16_t playerId)
 
 std::shared_ptr<Session> Game::getSession(uint16_t id)
 {
-	std::shared_ptr<Session> session = sessions[id];
+	auto it = sessions.find(id);
+	if (it == sessions.end())
+	{
+		return {};
+	}
+	std::shared_ptr<Session> session = it->second;
+	if (!session)
+		return {};
 	return session;
 }
 

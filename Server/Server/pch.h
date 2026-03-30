@@ -29,7 +29,6 @@
 #include "02.Network/OverlappedEx.h"
 #include "02.Network/RingBuffer.h"
 #include "02.Network/TimerEvent.h"
-#include "Packet.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Mswsock.lib")

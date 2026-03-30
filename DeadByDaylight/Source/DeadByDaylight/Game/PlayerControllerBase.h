@@ -16,9 +16,4 @@ class DEADBYDAYLIGHT_API APlayerControllerBase : public APlayerController
 public:
 	virtual void BeginPlay() override;
 
-public:
-	UFUNCTION(BlueprintCallable, Category = "PlayerControllerBase")
-	void SendLoginPacket(FString UserId, FString UserPw, bool IsKller);
-
-
 };

@@ -95,7 +95,7 @@
     <ClCompile Include="02.Network\Listener.cpp" />
     <ClCompile Include="01.Game\Actor\GameSession.cpp" />
     <ClCompile Include="02.Network\TimerEvent.cpp" />
-    <ClCompile Include="99.Header\PacketHandler.cpp" />
+    <ClCompile Include="99.Header\PacketDispatcher.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -112,14 +112,13 @@
     <ClInclude Include="02.Network\OverlappedEx.h" />
     <ClInclude Include="02.Network\ServerCore.h" />
     <ClInclude Include="02.Network\TimerEvent.h" />
-    <ClInclude Include="99.Header\PacketHandler.h" />
+    <ClInclude Include="99.Header\PacketDispatcher.h" />
     <ClInclude Include="99.Header\Protocol.h" />
     <ClInclude Include="99.Header\Types.h" />
     <ClInclude Include="02.Network\Listener.h" />
     <ClInclude Include="01.Game\Actor\GameSession.h" />
     <ClInclude Include="99.Header\Vector2.h" />
     <ClInclude Include="Database.h" />
-    <ClInclude Include="Packet.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="02.Network\RingBuffer.h" />
   </ItemGroup>

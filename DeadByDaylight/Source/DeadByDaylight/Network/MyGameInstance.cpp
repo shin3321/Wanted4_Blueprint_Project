@@ -9,6 +9,8 @@
 #include "Common/TcpSocketBuilder.h"
 #include "Serialization/ArrayWriter.h"
 #include "SocketSubsystem.h"
+#include "GameFramework/PlayerController.h"
+#include "DeadByDaylight/Header/MyPacketStructs.h"
 
 #include "MyNetworkSubsystem.h"
 
@@ -108,6 +110,27 @@ bool UMyGameInstance::IsServerConnected()
 	else
 		return false;
 }
+
+void UMyGameInstance::SendLoginPacket(FString UserId, FString UserPw, bool IsKller)
+{
+	UE_LOG(LogTemp, Display, TEXT("Send Login Packet: %s, %s"), *UserId, *UserPw);
+
+	FCLoginPacket LoginPacket;
+	LoginPacket.Header.PacketType = EPacketType::C_Login;
+	LoginPacket.Header.PacketSize = sizeof(FCLoginPacket);
+	
+	FTCHARToUTF8 ConvertId(*UserId);
+	FCStringAnsi::Strncpy(LoginPacket.UserId, (const char*)ConvertId.Get(), sizeof(LoginPacket.UserId) - 1);
+	LoginPacket.UserId[sizeof(LoginPacket.UserId) - 1] = '\0';
+
+	FTCHARToUTF8 ConvertPw(*UserPw);
+	FCStringAnsi::Strncpy(LoginPacket.UserPw, (const char*)ConvertPw.Get(), sizeof(LoginPacket.UserPw) - 1);
+	LoginPacket.UserPw[sizeof(LoginPacket.UserPw) - 1] = '\0';
+
+	SendPacket(&LoginPacket, sizeof(FCLoginPacket));
+}
+
+
 
 void UMyGameInstance::SendPacket(void* Packet, int32 PacketSize)
 {

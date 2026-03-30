@@ -39,7 +39,7 @@
     <ClCompile Include="01.Game\Actor\GameSession.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="99.Header\PacketHandler.cpp">
+    <ClCompile Include="99.Header\PacketDispatcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="02.Network\TimerEvent.cpp">
@@ -80,13 +80,10 @@
     <ClInclude Include="01.Game\Actor\GameSession.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Packet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="02.Network\RingBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="99.Header\PacketHandler.h">
+    <ClInclude Include="99.Header\PacketDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="02.Network\TimerEvent.h">

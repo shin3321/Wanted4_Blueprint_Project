@@ -25,6 +25,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsServerConnected();
 
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void SendLoginPacket(FString UserId, FString UserPw, bool IsKller);
+
 	void SendPacket(void* Packet, int32 PacketSize);
 
 private:

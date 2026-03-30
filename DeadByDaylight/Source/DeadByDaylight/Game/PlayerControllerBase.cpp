@@ -9,7 +9,3 @@ void APlayerControllerBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void APlayerControllerBase::SendLoginPacket(FString UserId, FString UserPw, bool IsKller)
-{
-
-}
