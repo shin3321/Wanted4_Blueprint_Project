@@ -4,7 +4,7 @@
 #include "99.Header/PacketDispatcher.h"
 #include "01.Game/Actor/Session.h"
 #include "01.Game/Actor/Player.h"
-
+#include "01.Game/Room.h"
 #include <cmath>
 #include <fstream>
 
@@ -14,6 +14,7 @@ Game::Game()
 	:_iocpHandle(nullptr), _overlappedPool(nullptr)
 {
 	_instance = this;
+	makeRoom();
 }
 
 Game::~Game()
@@ -42,7 +43,7 @@ void Game::accept(SOCKET socket)
 	std::cout << "new Session " << newSession->_id << "\n";
 }
 
-void Game::recv(uint16_t key, uint16_t numbytes)
+void Game::recv(int32 key, uint16_t numbytes)
 {
 	//받은 세션 아이디 확인
 	auto session = getSession(key);
@@ -80,22 +81,116 @@ void Game::recv(uint16_t key, uint16_t numbytes)
 		}
 
 		//프로세스 패킷
-		PacketDispatcher::get().onReceive(packet.data(), packetSize);
+		PacketDispatcher::get().onReceive(packet.data(), packetSize, key);
 	}
 	session->doRecv();
 }
 
-uint16 Game::getClientId()
+int32 Game::getClientId()
 {
 	_clientId.fetch_add(1);
 	return _clientId;
 }
 
-uint16 Game::getUnittId()
+int32 Game::getRoomId()
 {
-	_unitId.fetch_add(1);
-	return _unitId;
+	_roomId.fetch_add(1);
+	return _roomId;
 }
+
+void Game::sendLoginResult(int32 playerId, int bloodPoint)
+{
+	S_LoginResultPacket result;
+	result.Header.PacketType = EPacketType::S_LoginResult;
+	result.Header.PacketSize = sizeof(S_LoginResultPacket);
+	result.bloodPoint = bloodPoint;
+	result.playerId = playerId;
+
+	auto session = getSession(playerId);
+	session->doSend(&result, sizeof(S_LoginResultPacket));
+}
+
+void Game::makeRoom()
+{
+	if (rooms.empty())
+	{
+		uint16 roomId = getRoomId();
+		rooms.emplace(roomId, std::make_shared<Room>(roomId));
+	}
+
+}
+
+void Game::sendWaitResult(int32 playerId, bool isKiller)
+{
+	auto session = getSession(playerId);
+	S_WaitingResultPacket packet;
+	packet.Header.PacketType = EPacketType::S_WaitingResult;
+	packet.Header.PacketSize = sizeof(S_WaitingResultPacket);
+	session->doSend(&packet, sizeof(S_WaitingPacket));
+}
+
+void Game::assignRoom(int32 playerId, bool isKiller)
+{
+	auto session = getSession(playerId);
+	bool isAssign = false;
+	for (auto& [id, room] : rooms)
+	{
+		if (room->_isStarted)
+			continue;
+
+		if (isKiller)
+		{
+			if (room->addKiller(session, playerId))
+			{
+				isAssign = true;
+				break;
+			}
+		}
+		else
+		{
+			if (room->addSurvivor(session, playerId))
+			{
+				isAssign = true;
+				break;
+			}
+		}
+	}
+	
+	if (!isAssign)
+	{
+		uint16 newRoomId = getRoomId();
+		auto newRoom = std::make_shared<Room>(newRoomId);
+		rooms.emplace(newRoomId, newRoom);
+
+		if (isKiller)
+		{
+			newRoom->addKiller(session, playerId);
+		}
+		else
+		{
+			newRoom->addSurvivor(session, playerId);
+		}
+	}
+}		
+
+void Game::readyRoom(C_ReadyPacket* readyPacket)
+{
+	int32 playerId = readyPacket->PlayerId;
+	auto session = getSession(playerId);
+
+	auto room = getRoom(session->_roomId);
+	room->sendReadyPacket(readyPacket);
+}
+
+void Game::sendMove(C_MovePacket* movePacket)
+{
+	int32 playerId = movePacket->PlayerId;
+	auto session = getSession(playerId);
+
+	auto room = getRoom(session->_roomId);
+	room->sendMovePacket(*movePacket);
+}
+
 
 void Game::closeSocket(int sessioneId)
 {
@@ -114,17 +209,11 @@ void Game::broadcast(const char* data, uint16 packetSize)
 {
 	for (const auto session : sessions)
 	{
-		session.second->doSend(data, packetSize);
+		session.second->doSend(&data, packetSize);
 	}
 }
 
-void Game::setPlayer(std::shared_ptr<Player> player, uint16_t playerId)
-{
-	players.try_emplace(playerId, player);
-	player->setId(playerId);
-}
-
-std::shared_ptr<Session> Game::getSession(uint16_t id)
+std::shared_ptr<Session> Game::getSession(int32 id)
 {
 	auto it = sessions.find(id);
 	if (it == sessions.end())
@@ -135,6 +224,23 @@ std::shared_ptr<Session> Game::getSession(uint16_t id)
 	if (!session)
 		return {};
 	return session;
+}
+
+std::shared_ptr<Player> Game::getPlayer(uint32 playerId)
+{
+	return std::shared_ptr<Player>();
+}
+
+std::shared_ptr<Room> Game::getRoom(int32 sessionId)
+{
+	auto it = rooms.find(sessionId);
+	if (it != rooms.end())
+	{
+		std::shared_ptr<Room> room = it->second;
+		if (room)
+			return room;
+	}
+	return std::shared_ptr<Room>();
 }
 
 Game& Game::get()

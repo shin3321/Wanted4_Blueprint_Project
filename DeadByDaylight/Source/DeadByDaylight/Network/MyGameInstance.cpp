@@ -11,10 +11,8 @@
 #include "SocketSubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "DeadByDaylight/Header/MyPacketStructs.h"
-
+#include "Kismet/GameplayStatics.h"
 #include "MyNetworkSubsystem.h"
-
-
 
 void UMyGameInstance::Init()
 {
@@ -23,7 +21,6 @@ void UMyGameInstance::Init()
 #if UE_BUILD_DEVELOPMENT
 	TryAsyncConnect("127.0.0.1", 9999);
 #endif
-
 }
 
 void UMyGameInstance::TryAsyncConnect(const FString& Ip, int32 Port)
@@ -111,14 +108,15 @@ bool UMyGameInstance::IsServerConnected()
 		return false;
 }
 
-void UMyGameInstance::SendLoginPacket(FString UserId, FString UserPw, bool IsKller)
+void UMyGameInstance::SendLoginPacket(FString UserId, FString UserPw, bool IsKiller)
 {
 	UE_LOG(LogTemp, Display, TEXT("Send Login Packet: %s, %s"), *UserId, *UserPw);
+	bIsKiller = IsKiller;
 
-	FCLoginPacket LoginPacket;
+	FC_LoginPacket LoginPacket;
 	LoginPacket.Header.PacketType = EPacketType::C_Login;
-	LoginPacket.Header.PacketSize = sizeof(FCLoginPacket);
-	
+	LoginPacket.Header.PacketSize = sizeof(FC_LoginPacket);
+
 	FTCHARToUTF8 ConvertId(*UserId);
 	FCStringAnsi::Strncpy(LoginPacket.UserId, (const char*)ConvertId.Get(), sizeof(LoginPacket.UserId) - 1);
 	LoginPacket.UserId[sizeof(LoginPacket.UserId) - 1] = '\0';
@@ -127,7 +125,7 @@ void UMyGameInstance::SendLoginPacket(FString UserId, FString UserPw, bool IsKll
 	FCStringAnsi::Strncpy(LoginPacket.UserPw, (const char*)ConvertPw.Get(), sizeof(LoginPacket.UserPw) - 1);
 	LoginPacket.UserPw[sizeof(LoginPacket.UserPw) - 1] = '\0';
 
-	SendPacket(&LoginPacket, sizeof(FCLoginPacket));
+	SendPacket(&LoginPacket, sizeof(FC_LoginPacket));
 }
 
 
@@ -149,4 +147,96 @@ void UMyGameInstance::SendPacket(void* Packet, int32 PacketSize)
 	{
 
 	}
+}
+
+void UMyGameInstance::HandleLogin(int32 BloodPoint, int32 PlayerId)
+{
+	UE_LOG(LogTemp, Display, TEXT("HandleLogin"));
+	MyPlayerId = PlayerId;
+	if (BloodPoint == -1)
+	{
+		OnShowErrorMessage.Broadcast();
+	}
+	else
+	{
+		MyBloodPoint = BloodPoint;
+		UE_LOG(LogTemp, Log, TEXT("Login Success! ID: %d, BP: %d"), PlayerId, BloodPoint);
+		OnLoginResultReceived.Broadcast(BloodPoint, PlayerId);
+		//UGameplayStatics::OpenLevel(GetWorld(), "ReadyRoom", true);
+	}
+}
+
+void UMyGameInstance::SendWaitingPacket(int32 PlayerId, bool IsKiller)
+{
+	UE_LOG(LogTemp, Display, TEXT("Waiting Send"));
+
+	FC_WaitingPacket WaitingPacket;
+	WaitingPacket.Header.PacketType = EPacketType::C_Waiting;
+	WaitingPacket.Header.PacketSize = sizeof(FC_WaitingPacket);
+	WaitingPacket.PlayerId = PlayerId;
+	WaitingPacket.IsKiller = IsKiller;
+
+	SendPacket(&WaitingPacket, sizeof(FC_WaitingPacket));
+}
+
+void UMyGameInstance::HandleWaitResult()
+{
+	OnWaitingRoom.Broadcast();
+}
+
+
+//원래 방에 있던 사람들에게 새로 들어온 사람 정보 보내기 + 나의 정보 
+void UMyGameInstance::HandleWaiting(const FPlayerInfo& Info)
+{
+	//나의 정보라면 저장만 해 두고
+	PlayerInfos.Add(Info.PlayerId, MakeUnique<FPlayerInfo>(Info));
+
+	//나의 정보가 아니라면 대기방에 추가
+	if (MyPlayerId != Info.PlayerId)
+	{
+		OnAddWaitingRoom.Broadcast(Info);
+	}
+}
+
+bool UMyGameInstance::AddPlayerInfo(int32 PlayerId, const FPlayerInfo& Info)
+{
+	if (TUniquePtr<FPlayerInfo>* TargetInfo = PlayerInfos.Find(PlayerId))
+	{
+		*(*TargetInfo) = Info;
+		return false;
+	}
+	else
+	{
+		PlayerInfos.Add(PlayerId, MakeUnique<FPlayerInfo>(Info));
+		return true;
+	}
+}
+
+void UMyGameInstance::SendReadyPacket(int32 PlayerId, bool IsKiller)
+{
+	UE_LOG(LogTemp, Display, TEXT("Ready Send"));
+
+	FC_ReadyPacket ReadyPacket;
+	ReadyPacket.Header.PacketType = EPacketType::C_Ready;
+	ReadyPacket.Header.PacketSize = sizeof(FC_ReadyPacket);
+	ReadyPacket.PlayerId = PlayerId;
+
+	SendPacket(&ReadyPacket, sizeof(FC_ReadyPacket));
+}
+
+void UMyGameInstance::HandleGameStart()
+{
+	UGameplayStatics::OpenLevel(GetWorld(), "GameMap", true);
+	bGameStarted = true;
+}
+
+TArray<FPlayerInfo> UMyGameInstance::GetAllInfo()
+{
+	TArray<FPlayerInfo> OutInfos;
+
+	for (auto& [Id, Info] : PlayerInfos)
+	{
+		OutInfos.Add(*Info);
+	}
+	return OutInfos;
 }

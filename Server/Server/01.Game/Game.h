@@ -1,11 +1,10 @@
 ﻿#pragma once
 
 #include <set>
+
 class Player;
 class Session;
-
-//class Unit;
-
+class Room;
 
 class Game
 {
@@ -21,11 +20,26 @@ public:
 	void accept(SOCKET socket);
 
 	//서버 recv
-	void recv(uint16_t key, uint16_t numbytes);
+	void recv(int32 key, uint16_t numbytes);
 
 	//클라이언트 아이디 생성
-	uint16 getClientId();
-	uint16 getUnittId();
+	int32 getClientId();
+	int32 getRoomId();
+
+	//로그인 정보 전달
+	void sendLoginResult(int32 playerId, int bloodPoint);
+
+	//게임 시작 시 방 미리 만들어 두기
+	void makeRoom();
+	
+	void sendWaitResult(int32 playerId, bool isKiller);
+
+	// 방 배정 함수
+	void assignRoom(int32 playerId, bool isKiller);
+	void readyRoom(C_ReadyPacket* readyPacket);
+
+	//움직임 전달 함수
+	void sendMove(C_MovePacket* movePacket);
 
 	//closeSocket 함수 - 플레이어의 소켓을 닫는 함수
 	void closeSocket(int sessioneId);
@@ -33,8 +47,10 @@ public:
 
 	//setter,getter
 	//아이디에 맞는 세션을 반환	
-	void setPlayer(std::shared_ptr<Player> player, uint16_t playerId);
-	std::shared_ptr<Session> getSession(uint16_t id);
+	std::shared_ptr<Session> getSession(int32 id);
+	std::shared_ptr<Player> getPlayer(uint32 playerId);
+
+	std::shared_ptr<Room> getRoom(int32 sessionId);
 
 	//싱글톤 함수
 	static Game& get();
@@ -44,25 +60,16 @@ private:
 	static Game* _instance;
 
 	//클라이언트 아이디
-	std::atomic<uint16> _clientId = 4;
+	std::atomic<uint16> _clientId = 0;
 
 	//unitId
-	std::atomic<uint16> _unitId = 10;
+	std::atomic<uint16> _roomId = 0;
 
 	HANDLE _iocpHandle;
 	OverlappedExPool* _overlappedPool;
 
 private:
-	//맵 너비, 높이
-	uint16_t _width = 256;
-	uint16_t _height = 98;
-
-	std::vector<uint8_t> _tiles;
-	std::mutex _tileLock;
-
-private:
 	std::unordered_map<uint16, std::shared_ptr<Session>> sessions;
-	std::unordered_map<uint16, std::shared_ptr<Player>> players;
-
+	std::unordered_map<uint16, std::shared_ptr<Room>> rooms;
 };
 

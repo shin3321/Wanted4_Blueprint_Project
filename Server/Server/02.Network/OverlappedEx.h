@@ -5,9 +5,8 @@ enum class OP_TYPE
 	ACCEPT,
 	RECV,
 	SEND,
+	GAME_WAIT,
 	GAME_START,
-	UNIT_ATTACK,
-
 };
 
 //OVERLAPPED 확장 구조체
@@ -20,6 +19,7 @@ struct OverlappedEx
 	std::vector<char>  _buffer;
 	OP_TYPE _type;
 	uint16_t _targetId;
+	bool isKiller;
 
 	//recv용 생성자
 	OverlappedEx()

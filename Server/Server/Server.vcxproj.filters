@@ -45,7 +45,16 @@
     <ClCompile Include="02.Network\TimerEvent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Database.cpp">
+    <ClCompile Include="02.Network\DBThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="01.Game\Room.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="01.Game\Actor\Survivor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="01.Game\Actor\Killer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,10 +98,19 @@
     <ClInclude Include="02.Network\TimerEvent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="99.Header\Vector2.h">
+    <ClInclude Include="99.Header\Location.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Database.h">
+    <ClInclude Include="02.Network\DBThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="01.Game\Room.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="01.Game\Actor\Survivor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="01.Game\Actor\Killer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

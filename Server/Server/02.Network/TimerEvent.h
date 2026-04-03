@@ -6,6 +6,7 @@ using namespace std::chrono_literals;
 
 enum class TimerEvent
 {
+	EV_GAME_WAIT = 0,
 	EV_GAME_START = 1,
 };
 
@@ -15,7 +16,8 @@ struct Timer
 	std::chrono::system_clock::time_point wakeUpTime;
 	TimerEvent _eventType;
 
-	uint16_t unitId;
+	uint16_t targetId;
+	bool isKiller;
 	constexpr bool operator < (const Timer& L)const
 	{
 		return (wakeUpTime > L.wakeUpTime);

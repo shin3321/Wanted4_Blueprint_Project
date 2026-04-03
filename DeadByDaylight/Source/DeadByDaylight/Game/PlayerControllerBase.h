@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Engine/TimerHandle.h"
 #include "PlayerControllerBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS(Blueprintable)
 class DEADBYDAYLIGHT_API APlayerControllerBase : public APlayerController
@@ -15,5 +16,25 @@ class DEADBYDAYLIGHT_API APlayerControllerBase : public APlayerController
 	GENERATED_BODY()
 public:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayerReason) override;
+	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void SetId(int32 Id) { PlayerId = Id; }
+
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void SendState(FString NewState);
+
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void SendMovePacket();
+protected:
+	FTimerHandle SendPacketTimerHandle;
+
+	UPROPERTY(EditAnywhere, Category = "Network")
+	float NetworkSendInterval = 0.05f;
+
+private:
+	APawn* OwnerPlayer;
+	FString State;
+	int32 PlayerId;
 };

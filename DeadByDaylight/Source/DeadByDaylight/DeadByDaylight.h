@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "DeadByDaylight/Network/MyGameInstance.h"
 
-#define SEND_PACKET(Packet) \
-UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetWorld()->GetGameInstance()); \
-if(!Gameinstance)return;\
-GameInstance->SendPacket(Packet, sizeof(Packet));
+
+#define SEND_PACKET(Packet)\
+UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetWorld()->GetGameInstance());\
+if(!GameInstance)return;\
+GameInstance->SendPacket(&Packet, sizeof(Packet));

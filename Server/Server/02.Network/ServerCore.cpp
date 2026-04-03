@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "ServerCore.h"
 #include "01.Game/Game.h"
+#include "02.Network/DBThread.h"
+#include "01.Game/Room.h"
 
 ServerCore::ServerCore()
 	:_overlappedPool(10)
@@ -72,7 +74,7 @@ void ServerCore::init()
 	}
 
 	std::thread timerThread{ &ServerCore::doTimer, this };
-	std::thread dbThread{ &ServerCore::dbThread , this };
+	std::thread dbThread{ &DBThread::run, &DBThread::get()};
 	std::thread inputThread([this, MaxThreadNum]()
 		{
 			while (true)
@@ -94,6 +96,7 @@ void ServerCore::init()
 	inputThread.join();
 
 	if (timerThread.joinable()) timerThread.join();
+	if (dbThread.joinable()) dbThread.join();
 
 	for (auto& thread : workThreads)
 	{
@@ -176,16 +179,30 @@ void ServerCore::runWorkThread()
 			if (numbytes == 0)
 			{
 				std::cout << "Recv Buffer Overflow. Dropping Session\n";
-				Game::get().closeSocket(key);
+				Game::get().closeSocket(static_cast<int>(key));
 			}
 
-			numbytes = static_cast<uint16_t>(numbytes);
-			Game::get().recv(key, numbytes);
+			Game::get().recv(static_cast<int32>(key), static_cast<uint16_t>(numbytes));
+			break;
+		}
+
+		case OP_TYPE::GAME_WAIT:
+		{
+			std::cout << "Game Waiting\n";
+			Game::get().sendWaitResult(ex_over->_targetId, ex_over->isKiller);
+			break;
+		}
+
+		case OP_TYPE::GAME_START:
+		{
+			std::cout << "Game Start\n";
+			uint16 roomId = ex_over->_targetId;
+			auto room = Game::get().getRoom(roomId);
+			room->sendGameStart();
 			break;
 		}
 
 		}
-
 	}
 }
 
@@ -220,7 +237,15 @@ void ServerCore::doTimer()
 		case TimerEvent::EV_GAME_START:
 		{
 			timerOver->_type = OP_TYPE::GAME_START;
+			timerOver->_targetId = nextEvent.targetId;
+			PostQueuedCompletionStatus(_iocpHandle, 1, nextEvent.playerId, &timerOver->_overlapped);
+			break;
+		}	
+		case TimerEvent::EV_GAME_WAIT:
+		{
+			timerOver->_type = OP_TYPE::GAME_WAIT;
 			timerOver->_targetId = nextEvent.playerId;
+			timerOver->isKiller = nextEvent.isKiller;
 			PostQueuedCompletionStatus(_iocpHandle, 1, nextEvent.playerId, &timerOver->_overlapped);
 			break;
 		}
@@ -228,11 +253,6 @@ void ServerCore::doTimer()
 
 	}
 }
-
-void ServerCore::dbThread()
-{
-}
-
 int ServerCore::getCore()
 {
 	DWORD bufferSize = 0;
