@@ -12,6 +12,11 @@ public:
 	Location() {}
 	Location(double x, double y, double z) : x(x), y(y), z(z) {}
 
+	friend std::ostream& operator<< (std::ostream& os, const Location& loc)
+	{
+		return os << "(" << loc.x << ", " << loc.y << ", " << loc.z << ")\n";
+	}
+
 public:
 	double x = 0;
 	double y = 0;
@@ -112,6 +117,8 @@ struct S_ReadyPacket
 struct S_StartPacket
 {
 	PacketHeader Header;
+	int32_t PlayerId;
+	Location StartLocation;
 };
 
 struct C_MovePacket
@@ -134,12 +141,15 @@ struct C_ChangeStatePacket
 {
 	PacketHeader Header;
 	int32_t PlayerId;
-}; 
+	uint8_t StateLen;
+	char State[1];
+};
 
 struct S_ChangeStatePacket
 {
 	PacketHeader Header;
 	int32_t PlayerId;
-	char State[15];
+	uint8_t StateLen;
+	char State[1];
 };
 #pragma pack(pop)

@@ -12,7 +12,6 @@
 #include "GameFramework/PlayerController.h"
 #include "DeadByDaylight/Header/MyPacketStructs.h"
 #include "Kismet/GameplayStatics.h"
-#include "MyNetworkSubsystem.h"
 
 void UMyGameInstance::Init()
 {
@@ -224,10 +223,21 @@ void UMyGameInstance::SendReadyPacket(int32 PlayerId, bool IsKiller)
 	SendPacket(&ReadyPacket, sizeof(FC_ReadyPacket));
 }
 
-void UMyGameInstance::HandleGameStart()
+void UMyGameInstance::HandleGameStart(FVector StartLocation, int32 PlayerId)
 {
-	UGameplayStatics::OpenLevel(GetWorld(), "GameMap", true);
+	//OnStart.Broadcast();
+	auto Info = PlayerInfos.Find(PlayerId);
+	auto InfoRef = Info->Get();
+	InfoRef->SetLocation(StartLocation);
+	UGameplayStatics::OpenLevel(GetWorld(), "GameLevel", true);
 	bGameStarted = true;
+}
+
+FVector UMyGameInstance::GetMyPlayerLocation() const
+{
+	auto Info = PlayerInfos.Find(MyPlayerId);
+	auto InfoRef = Info->Get();
+	return InfoRef->Location;
 }
 
 TArray<FPlayerInfo> UMyGameInstance::GetAllInfo()
@@ -239,4 +249,9 @@ TArray<FPlayerInfo> UMyGameInstance::GetAllInfo()
 		OutInfos.Add(*Info);
 	}
 	return OutInfos;
+}
+
+void UMyGameInstance::SetNetworkManagerOfPlayerManager(APlayerManager* PlayerManager)
+{
+	 UNetworkManager->SetPlayerManager(PlayerManager);
 }

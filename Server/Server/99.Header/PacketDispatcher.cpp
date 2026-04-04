@@ -6,6 +6,9 @@
 
 void PacketDispatcher::onReceive(char* buffer, uint16 packetSize, int32 playerId)
 {
+	if (buffer == nullptr || packetSize < sizeof(PacketHeader))
+		return;
+
 	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
 
 	EPacketType type = static_cast<EPacketType>(header->PacketType);
@@ -52,7 +55,17 @@ void PacketDispatcher::handleMove(char* buffer, int32 playerId)
 
 void PacketDispatcher::handleChangeState(char* buffer, int32 playerId)
 {
-	std::cout << "Change State Packet Handler\n";
+	auto header = reinterpret_cast<PacketHeader*>(buffer);
+
+	int32 packetSize = header->PacketSize;
+
+	if (packetSize < sizeof(C_ChangeStatePacket))
+		return;
+
 	C_ChangeStatePacket* packet = reinterpret_cast<C_ChangeStatePacket*>(buffer);
 
+	if (packet->StateLen > packetSize)
+		return;
+
+	Game::get().recvState(packet);
 }

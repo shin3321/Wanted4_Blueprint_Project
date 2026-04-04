@@ -11,7 +11,7 @@
 
 void UMyNetworkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	Super::Initialize(Collection); 
+	Super::Initialize(Collection);
 	FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UMyNetworkSubsystem::OnWorldInitialized);
 }
 
@@ -82,7 +82,7 @@ void UMyNetworkSubsystem::ReceiveData()
 					if (Header.PacketSize > MAX_PACKET_SIZE || Header.PacketSize <= 0)
 					{
 						UE_LOG(LogTemp, Error, TEXT("Invalid Packet Size: %d"), Header.PacketSize);
-						return; 
+						return;
 
 					}
 
@@ -214,8 +214,9 @@ void UMyNetworkSubsystem::ProcessQueuePackets()
 			{
 				UE_LOG(LogTemp, Display, TEXT("FS_StartPacket"));
 				FS_StartPacket* Packet = reinterpret_cast<FS_StartPacket*>(PacketData.GetData());
+				FVector StartLocation(Packet->StartLocation.x, Packet->StartLocation.y, Packet->StartLocation.z);
 
-				GameInst->HandleGameStart();
+				GameInst->HandleGameStart(StartLocation, Packet->PlayerId);
 			}
 			break;
 		}
@@ -230,8 +231,38 @@ void UMyNetworkSubsystem::ProcessQueuePackets()
 				int32 PlayerId = Packet->PlayerId;
 				FVector Location(Packet->PlayerLocation.x, Packet->PlayerLocation.y, Packet->PlayerLocation.z);
 				FRotator Rotation(Packet->PlayerRotation.pitch, Packet->PlayerRotation.yaw, Packet->PlayerRotation.roll);
-				PlayerMng->HandleMove(PlayerId, Location, Rotation);
+				if (PlayerMng)
+					PlayerMng->HandleMove(PlayerId, Location, Rotation);
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("PlayerMng Is Null"));
+
+				}
 			}
+			break;
+		}
+
+		case EPacketType::S_ChangeState:
+		{
+			UE_LOG(LogTemp, Display, TEXT("FS_ChangeStatePacket"));
+
+			FS_ChangeStatePacket* Packet = reinterpret_cast<FS_ChangeStatePacket*>(PacketData.GetData());
+
+			int32 PlayerId = Packet->PlayerId;
+			uint16 Len = Packet->StateLen;
+
+			if (PacketData.Num() < sizeof(FS_ChangeStatePacket) + Len)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid packet size"));
+				break;
+			}
+			FString NewState = FString(
+				Len,
+				UTF8_TO_TCHAR(reinterpret_cast<const char*>(Packet->State))
+			);
+			if (PlayerMng)
+				PlayerMng->HandleChangeState(PlayerId, NewState);
+
 			break;
 		}
 

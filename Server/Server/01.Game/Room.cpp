@@ -10,11 +10,16 @@ Room::Room(uint16 id)
 {
 	_roomId = id;
 
-	slots[0]._loc = Location(50.0f, -60.0f, 0.0f);
-	slots[1]._loc = Location(-20.0f, -30.0f, 0.0f);
-	slots[2]._loc = Location(-120.0f, -80.0f, 0.0f);
-	slots[3]._loc = Location(-230.0f, -140.0f, 0.0f);
+	slots[0]._loc = Location(50.0, -60.0, 0.0);
+	slots[1]._loc = Location(-20.0, -30.0, 0.0);
+	slots[2]._loc = Location(-120.0, -80.0, 0.0);
+	slots[3]._loc = Location(-230.0, -140.0, 0.0);
 
+	enterLocations[0].startLocation = Location(3560.0, 3170.0, 100.0);
+	enterLocations[1].startLocation = Location(2130.0, -770.0, 100.0);
+	enterLocations[2].startLocation = Location(2230.0, -2950.0, 100.0);
+	enterLocations[3].startLocation = Location(-2430.0, -3170.0, 100.0);
+	enterLocations[4].startLocation = Location(-2170.0, 3240.0, 100.0);
 }
 
 bool Room::addKiller(std::shared_ptr<Session> session, int32 id)
@@ -61,6 +66,18 @@ Location Room::WaitingPlayerLocation()
 		{
 			slot._isOccupied = true;
 			return slot._loc;
+		}
+	}
+}
+
+Location Room::startingPlayerLocation()
+{
+	for (auto loc : enterLocations)
+	{
+		if (loc._isOccupied == false)
+		{
+			loc._isOccupied = true;
+			return loc.startLocation;
 		}
 	}
 }
@@ -131,6 +148,8 @@ void Room::sendWaitingRoom(std::shared_ptr<Player> player, int32 playerId, bool 
 
 void Room::sendReadyPacket(C_ReadyPacket* readyPacket)
 {
+	//Todo
+	//들어오기 전에 미리 레디 한 사람들은 카운트 안 됨
 	++readyCount;
 	int32 PlayerId = readyPacket->PlayerId;
 	if (readyCount >= startCount)
@@ -153,7 +172,39 @@ void Room::sendGameStart()
 	S_StartPacket packet;
 	packet.Header.PacketType = EPacketType::S_GameStart;
 	packet.Header.PacketSize = sizeof(S_StartPacket);
-	roomBroadcast(&packet, sizeof(packet));
+	packet.StartLocation = startingPlayerLocation();
+	std::lock_guard<std::mutex>lock(_survivorLock);
+	for (auto& [id, player] : _survivors)
+	{
+		packet.PlayerId = id;
+		player->send(&packet, sizeof(S_StartPacket));
+	}
+	if (_killer)
+	{
+		packet.PlayerId = _killer->getId();
+		_killer->send(&packet, sizeof(S_StartPacket));
+	}
+}
+
+void Room::sendState(const C_ChangeStatePacket& statePacket)
+{
+	int32 Len = statePacket.StateLen;
+
+	int32 PacketSize = sizeof(S_ChangeStatePacket) + Len;
+
+	S_ChangeStatePacket* packet = (S_ChangeStatePacket*)malloc(PacketSize);
+
+	packet->Header.PacketType = EPacketType::S_ChangeState;
+	packet->Header.PacketSize = PacketSize;
+	packet->PlayerId = statePacket.PlayerId;
+	packet->StateLen = Len;
+
+	memcpy(packet->State, statePacket.State, Len);
+
+	roomBroadcastExcludeMe(statePacket.PlayerId, packet, PacketSize);
+
+	free(packet);
+
 }
 
 void Room::roomBroadcast(void* packet, uint16_t size)
@@ -167,10 +218,23 @@ void Room::roomBroadcast(void* packet, uint16_t size)
 		_killer->send(packet, size);
 }
 
+void Room::roomBroadcastExcludeMe(int32 playerId, void* packet, uint16_t size)
+{
+	std::lock_guard<std::mutex>lock(_survivorLock);
+	for (auto& [id, player] : _survivors)
+	{
+		if (playerId == id) continue;
+		player->send(packet, size);
+	}
+	if (_killer && (_killer->getId() != playerId))
+		_killer->send(packet, size);
+}
+
 void Room::sendMovePacket(const C_MovePacket& movePacket)
 {
+	std::cout << " New Location: " << movePacket.PlayerLocation << "\n";
 	S_MovePacket packet;
-	packet.Header.PacketSize = sizeof(EPacketType::S_Move);
+	packet.Header.PacketSize = sizeof(S_MovePacket);
 	packet.Header.PacketType = EPacketType::S_Move;
 	packet.PlayerLocation = movePacket.PlayerLocation;
 	packet.PlayerRotation = movePacket.PlayerRotation;

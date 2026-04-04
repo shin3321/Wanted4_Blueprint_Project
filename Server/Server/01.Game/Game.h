@@ -41,6 +41,9 @@ public:
 	//움직임 전달 함수
 	void sendMove(C_MovePacket* movePacket);
 
+	// 캐릭터 상태 전송 함수
+	void recvState(C_ChangeStatePacket* statePacket);
+
 	//closeSocket 함수 - 플레이어의 소켓을 닫는 함수
 	void closeSocket(int sessioneId);
 	void broadcast(const char* data, uint16 packetSize);

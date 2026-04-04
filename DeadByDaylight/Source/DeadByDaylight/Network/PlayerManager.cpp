@@ -7,8 +7,6 @@
 void APlayerManager::BeginPlay()
 {
 	this->Tags.Add("PlayerManager");
-	UMyGameInstance* GameInst = Cast<UMyGameInstance>(GetWorld()->GetGameInstance());
-	MyPlayerId = GameInst->GetMyId();
 }
 
 void APlayerManager::HandleMove(int32 PlayerId, FVector PlayerLocation, FRotator PlayerRotator)
@@ -22,8 +20,28 @@ void APlayerManager::HandleMove(int32 PlayerId, FVector PlayerLocation, FRotator
 	}
 }
 
+void APlayerManager::HandleChangeState(int32 PlayerId, const FString NewState)
+{
+	if (PlayerId == MyPlayerId)
+		return;
+
+	if (AMyCharacterBase* Remote = Cast<AMyCharacterBase>(Players.FindRef(PlayerId)))
+	{
+		Remote->OnReceiveState(NewState);
+	}
+}
+
 void APlayerManager::InsertPlayers(int32 PlayerId, AMyCharacterBase* Player)
 {
 	if (Player)
 		Players.Add(PlayerId, Player);
+}
+
+void APlayerManager::SetPlayerId()
+{
+	UMyGameInstance* GameInst = Cast<UMyGameInstance>(GetWorld()->GetGameInstance());
+	if (GameInst)
+		MyPlayerId = GameInst->GetMyId();
+	else
+		UE_LOG(LogTemp, Display, TEXT("GameInstance Is Null"))
 }

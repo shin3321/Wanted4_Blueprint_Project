@@ -25,7 +25,8 @@ public:
 
 	Rotation() {}
 	Rotation(double pitch, double yaw, double roll)
-		:pitch(pitch), yaw(yaw), roll(roll) {}
+		:pitch(pitch), yaw(yaw), roll(roll) {
+	}
 };
 
 enum class EPacketType : uint16_t
@@ -110,6 +111,8 @@ struct FS_ReadyPacket
 struct FS_StartPacket
 {
 	FPacketHeader Header;
+	int32_t PlayerId;
+	Location StartLocation;
 };
 
 struct FC_MovePacket
@@ -132,13 +135,15 @@ struct FC_ChangeStatePacket
 {
 	FPacketHeader Header;
 	int32 PlayerId;
-	char State[15];
+	uint8 StateLen;
+	char State[1];
 };
 
 struct FS_ChangeStatePacket
 {
 	FPacketHeader Header;
 	int32_t PlayerId;
-	char State[15];
+	uint8 StateLen;
+	char State[1];
 };
 #pragma pack(pop)

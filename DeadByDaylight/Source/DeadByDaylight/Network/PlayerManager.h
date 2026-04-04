@@ -38,7 +38,10 @@ class DEADBYDAYLIGHT_API APlayerManager : public AActor
 	GENERATED_BODY()
 public:
 	virtual void BeginPlay() override;
+
 	void HandleMove(int32 PlayerId, FVector PlayerLocation, FRotator PlayerRotator);
+	void HandleChangeState(int32 PlayerId, const FString NewState);
+
 
 	UPROPERTY(BlueprintAssignable, Category = "Network")
 	FOnMovePlayer OnMovePlayer;
@@ -46,10 +49,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Network")
 	void InsertPlayers(int32 PlayerId, AMyCharacterBase* Player);
 
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void SetPlayerId();
+
+	UPROPERTY(BlueprintReadWrite, Category = "Network")
+	TMap<int32, AMyCharacterBase*> Players;
+
 private:
 	TMap<int32, TUniquePtr<FPlayerInfo>> PlayerInfos;
 
-	UPROPERTY()
-	TMap<int32, AMyCharacterBase*> Players;
 	int32 MyPlayerId;
 };

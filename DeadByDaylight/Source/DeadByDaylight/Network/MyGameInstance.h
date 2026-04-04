@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "PlayerManager.h"
 #include "Engine/GameInstance.h"
+#include "MyNetworkSubsystem.h"
 #include "MyGameInstance.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLoginResultReceived, int32, BloodPoint, int32, PlayerId);
@@ -12,6 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShowErrorMessage);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWaitingRoom);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAddWaitingRoom, const FPlayerInfo&, NewPlayerInfo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStart);
 
 
 UCLASS()
@@ -65,14 +67,20 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Ready")
 	FOnReady OnReady;
 
+	UPROPERTY(BlueprintAssignable, Category = "Ready")
+	FOnStart OnStart;
+
 
 	//Start --------------------------------
-	void HandleGameStart();
+	void HandleGameStart(FVector StartLocation, int32 PlayerId);
 
 	//PlayerInfo---------------------------------------
 	UFUNCTION(BlueprintPure, Category = "GameInfo")
 	int32 GetMyId() const { return MyPlayerId; }
-	
+
+	UFUNCTION(BlueprintPure, Category = "GameInfo")
+	FVector GetMyPlayerLocation() const;
+
 	UFUNCTION(BlueprintPure, Category = "GameInfo")
 	bool GetMyIsKiller() const { return bIsKiller; }
 
@@ -94,6 +102,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Game")
 	bool bGameStarted = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void SetNetworkManagerOfPlayerManager(APlayerManager* PlayerManager);
 
 private:
 	//패킷을 받을 네트워크 매니저

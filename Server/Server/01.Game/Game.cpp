@@ -191,6 +191,15 @@ void Game::sendMove(C_MovePacket* movePacket)
 	room->sendMovePacket(*movePacket);
 }
 
+void Game::recvState(C_ChangeStatePacket* statePacket)
+{
+	int32 playerId = statePacket->PlayerId;
+	auto session = getSession(playerId);
+
+	auto room = getRoom(session->_roomId);
+	room->sendState(*statePacket);
+}
+
 
 void Game::closeSocket(int sessioneId)
 {

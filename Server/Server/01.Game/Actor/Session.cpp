@@ -14,14 +14,14 @@ void Session::doSend(void* packet, uint16_t packetSize)
 
 	// 2. 이제 원하는 정보를 읽을 수 있습니다.
 	// 로그를 찍어서 값이 제대로 들어오는지 확인해보세요.
-	if (header != nullptr)
-	{
-		uint16_t size = header->PacketSize;
-		EPacketType id = header->PacketType;
+	//if (header != nullptr)
+	//{
+	//	uint16_t size = header->PacketSize;
+	//	EPacketType id = header->PacketType;
 
-		// 디버깅용 출력 (std::cout 혹은 사용하시는 로거 사용)
-		 std::cout << ", Size: " << size << std::endl;
-	}
+	//	 디버깅용 출력 (std::cout 혹은 사용하시는 로거 사용)
+	//	 std::cout << ", Size: " << size << std::endl;
+	//}
 	OverlappedEx* sendOver = _overlappedPool->allocOver();
 	sendOver->reset(reinterpret_cast<char*>(packet), packetSize);
 	sendOver->_wsaBuf.buf = sendOver->_buffer.data();
@@ -29,7 +29,7 @@ void Session::doSend(void* packet, uint16_t packetSize)
 	sendOver->_type = OP_TYPE::SEND;
 
 	unsigned char* p = (unsigned char*)sendOver->_wsaBuf.buf;
-	printf("Send Bytes: %02x %02x %02x %02x\n", p[0], p[1], p[2], p[3]);
+	//printf("Send Bytes: %02x %02x %02x %02x\n", p[0], p[1], p[2], p[3]);
 
 	int ret = WSASend(_socket, &sendOver->_wsaBuf, 1, nullptr, 0, &sendOver->_overlapped, nullptr);
 

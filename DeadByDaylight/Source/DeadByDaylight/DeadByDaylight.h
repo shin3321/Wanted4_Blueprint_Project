@@ -10,3 +10,11 @@
 UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetWorld()->GetGameInstance());\
 if(!GameInstance)return;\
 GameInstance->SendPacket(&Packet, sizeof(Packet));
+
+#define SEND_PACKET_RAW(DataPtr, DataSize)\
+{\
+    UMyGameInstance* GameInstance = Cast<UMyGameInstance>(GetWorld()->GetGameInstance());\
+    if(GameInstance) {\
+        GameInstance->SendPacket(DataPtr, DataSize);\
+    }\
+}

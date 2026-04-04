@@ -5,11 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/TimerHandle.h"
+#include "DeadByDaylight/Network/MyGameInstance.h"
 #include "PlayerControllerBase.generated.h"
 
-/**
- *
- */
 UCLASS(Blueprintable)
 class DEADBYDAYLIGHT_API APlayerControllerBase : public APlayerController
 {
@@ -23,10 +21,11 @@ public:
 	void SetId(int32 Id) { PlayerId = Id; }
 
 	UFUNCTION(BlueprintCallable, Category = "Network")
-	void SendState(FString NewState);
-
-	UFUNCTION(BlueprintCallable, Category = "Network")
 	void SendMovePacket();
+
+public:
+	UMyGameInstance* GameInst;
+
 protected:
 	FTimerHandle SendPacketTimerHandle;
 
@@ -37,4 +36,5 @@ private:
 	APawn* OwnerPlayer;
 	FString State;
 	int32 PlayerId;
+
 };
