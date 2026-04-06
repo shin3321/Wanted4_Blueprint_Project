@@ -6,6 +6,7 @@
 #include "PlayerManager.h"
 #include "Engine/GameInstance.h"
 #include "MyNetworkSubsystem.h"
+#include "DeadByDaylight/Header/MyPacketStructs.h"
 #include "MyGameInstance.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLoginResultReceived, int32, BloodPoint, int32, PlayerId);
@@ -72,7 +73,7 @@ public:
 
 
 	//Start --------------------------------
-	void HandleGameStart(FVector StartLocation, int32 PlayerId);
+	void HandleGameStart(FS_StartPacket* Packet);
 
 	//PlayerInfo---------------------------------------
 	UFUNCTION(BlueprintPure, Category = "GameInfo")

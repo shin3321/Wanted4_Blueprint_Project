@@ -60,7 +60,8 @@ bool Room::addSurvivor(std::shared_ptr<Session> session, int32 id)
 
 Location Room::WaitingPlayerLocation()
 {
-	for (auto slot : slots)
+	std::lock_guard<std::mutex>lock(_slotLock);
+	for (auto& slot : slots)
 	{
 		if (slot._isOccupied == false)
 		{
@@ -68,11 +69,13 @@ Location Room::WaitingPlayerLocation()
 			return slot._loc;
 		}
 	}
+	return {};
 }
 
 Location Room::startingPlayerLocation()
 {
-	for (auto loc : enterLocations)
+	std::lock_guard<std::mutex>lock(_enterLock);
+	for (auto& loc : enterLocations)
 	{
 		if (loc._isOccupied == false)
 		{
@@ -80,6 +83,7 @@ Location Room::startingPlayerLocation()
 			return loc.startLocation;
 		}
 	}
+	return {};
 }
 
 void Room::sendWaitingRoom(std::shared_ptr<Player> player, int32 playerId, bool isKiller)
@@ -170,21 +174,43 @@ void Room::sendReadyPacket(C_ReadyPacket* readyPacket)
 void Room::sendGameStart()
 {
 	S_StartPacket packet;
+	memset(&packet, 0, sizeof(S_StartPacket));
 	packet.Header.PacketType = EPacketType::S_GameStart;
 	packet.Header.PacketSize = sizeof(S_StartPacket);
-	packet.StartLocation = startingPlayerLocation();
-	std::lock_guard<std::mutex>lock(_survivorLock);
-	for (auto& [id, player] : _survivors)
+	int infoIndex = 0; // StartInfo 배열에 접근하기 위한 별도의 인덱스
+
 	{
-		packet.PlayerId = id;
-		player->send(&packet, sizeof(S_StartPacket));
+		std::lock_guard<std::mutex> lock(_survivorLock);
+
+		for (const auto& pair : _survivors)
+		{
+			if (infoIndex >= 5) break;
+
+			std::shared_ptr<Survivor> survivor = pair.second;
+
+			packet.StartInfo[infoIndex].PlayerId = survivor->getId();
+			packet.StartInfo[infoIndex].StartLocation = startingPlayerLocation();
+			packet.StartInfo[infoIndex].Iskiller = false;
+
+			infoIndex++;
+		}
 	}
+
 	if (_killer)
 	{
-		packet.PlayerId = _killer->getId();
-		_killer->send(&packet, sizeof(S_StartPacket));
+		if (infoIndex < 5) // 배열 크기 체크
+		{
+			packet.StartInfo[infoIndex].PlayerId = _killer->getId();
+			packet.StartInfo[infoIndex].StartLocation = startingPlayerLocation();
+			packet.StartInfo[infoIndex].Iskiller = true;
+
+			std::cout << "Killer Starting Location: " << packet.StartInfo[infoIndex].StartLocation << "\n";
+			infoIndex++;
+		}
 	}
+	roomBroadcast(&packet, sizeof(packet));
 }
+
 
 void Room::sendState(const C_ChangeStatePacket& statePacket)
 {
@@ -204,7 +230,16 @@ void Room::sendState(const C_ChangeStatePacket& statePacket)
 	roomBroadcastExcludeMe(statePacket.PlayerId, packet, PacketSize);
 
 	free(packet);
+}
 
+void Room::sendAxe(int32 playerId)
+{
+	S_ProjectileAxe packet;
+	packet.Header.PacketType = EPacketType::S_ProjectileAxe;
+	packet.Header.PacketSize = sizeof(S_ProjectileAxe);
+	packet.AxeId = playerId;
+
+	roomBroadcast(&packet, sizeof(S_ProjectileAxe));
 }
 
 void Room::roomBroadcast(void* packet, uint16_t size)
@@ -232,7 +267,6 @@ void Room::roomBroadcastExcludeMe(int32 playerId, void* packet, uint16_t size)
 
 void Room::sendMovePacket(const C_MovePacket& movePacket)
 {
-	std::cout << " New Location: " << movePacket.PlayerLocation << "\n";
 	S_MovePacket packet;
 	packet.Header.PacketSize = sizeof(S_MovePacket);
 	packet.Header.PacketType = EPacketType::S_Move;

@@ -44,6 +44,10 @@ public:
 	// 캐릭터 상태 전송 함수
 	void recvState(C_ChangeStatePacket* statePacket);
 
+
+	//도끼 날리기 함수
+	void sendAxe(int id);
+
 	//closeSocket 함수 - 플레이어의 소켓을 닫는 함수
 	void closeSocket(int sessioneId);
 	void broadcast(const char* data, uint16 packetSize);

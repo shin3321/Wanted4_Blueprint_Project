@@ -12,7 +12,7 @@ enum class TimerEvent
 
 struct Timer
 {
-	uint16_t playerId;
+	int32 playerId;
 	std::chrono::system_clock::time_point wakeUpTime;
 	TimerEvent _eventType;
 

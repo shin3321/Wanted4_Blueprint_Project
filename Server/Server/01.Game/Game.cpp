@@ -201,6 +201,15 @@ void Game::recvState(C_ChangeStatePacket* statePacket)
 }
 
 
+void Game::sendAxe(int id)
+{
+	int32 playerId = id;
+	auto session = getSession(id);
+
+	auto room = getRoom(session->_roomId);
+
+}
+
 void Game::closeSocket(int sessioneId)
 {
 	std::shared_ptr<Session> session = sessions[sessioneId];

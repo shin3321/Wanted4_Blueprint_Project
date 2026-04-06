@@ -16,8 +16,11 @@ AMyCharacterBase::AMyCharacterBase()
 
 // Called when the game starts or when spawned
 void AMyCharacterBase::BeginPlay()
-{
+{ 
 	Super::BeginPlay();
+
+	NewTargetLocation = GetActorLocation();
+	NewTargetRotation = GetActorRotation();
 
 	GameInst = Cast<UMyGameInstance>(GetWorld()->GetGameInstance());
 	PlayerId = GameInst->GetMyId();
@@ -56,8 +59,22 @@ void AMyCharacterBase::OnReceiveState(const FString NewState)
 	OnRecvStateChange.Broadcast(NewState);
 }
 
+void AMyCharacterBase::SendAxe()
+{
+	FC_ProjectileAxe Packet;
+	Packet.Header.PacketType = EPacketType::S_ProjectileAxe;
+	Packet.Header.PacketSize = sizeof(FC_ProjectileAxe);
+	Packet.PlayerId = PlayerId;
+	SEND_PACKET(Packet);
+}
+
+void AMyCharacterBase::OnReceiveAxe()
+{
+	OnCreateAxe.Broadcast();
+}
+
 void AMyCharacterBase::OnReceiveMovePacket(FVector NewLocation, FRotator NewRotation)
 {
 	NewTargetLocation = NewLocation;
 	NewTargetRotation = NewRotation;
-}
+} 

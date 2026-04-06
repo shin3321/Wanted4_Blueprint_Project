@@ -223,14 +223,42 @@ void UMyGameInstance::SendReadyPacket(int32 PlayerId, bool IsKiller)
 	SendPacket(&ReadyPacket, sizeof(FC_ReadyPacket));
 }
 
-void UMyGameInstance::HandleGameStart(FVector StartLocation, int32 PlayerId)
+void UMyGameInstance::HandleGameStart(FS_StartPacket* Packet)
 {
-	//OnStart.Broadcast();
-	auto Info = PlayerInfos.Find(PlayerId);
-	auto InfoRef = Info->Get();
-	InfoRef->SetLocation(StartLocation);
+	if (Packet == nullptr) return;
+
+	// 5명의 정보를 모두 순회합니다.
+	for (int32 i = 0; i < 5; ++i)
+	{
+		int32 TargetId = Packet->StartInfo[i].PlayerId;
+
+		// 유효한 ID인지 체크
+		if (TargetId <= 0)
+		{
+			continue;
+		}
+
+		FVector SpawnLocation(
+			Packet->StartInfo[i].StartLocation.x,
+			Packet->StartInfo[i].StartLocation.y,
+			Packet->StartInfo[i].StartLocation.z
+		);
+
+		if (auto InfoPtr = PlayerInfos.Find(TargetId))
+		{
+			auto InfoRef = InfoPtr->Get();
+			InfoRef->SetLocation(SpawnLocation);
+
+			InfoRef->SetIsKiller(Packet->StartInfo[i].Iskiller);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PlayerInfos에 존재하지 않는 ID(%d)가 시작 패킷에 포함되었습니다."), TargetId);
+		}
+	}
+
+	// 모든 유저의 위치 정보 세팅이 끝났으므로 레벨을 이동합니다.
 	UGameplayStatics::OpenLevel(GetWorld(), "GameLevel", true);
-	bGameStarted = true;
 }
 
 FVector UMyGameInstance::GetMyPlayerLocation() const

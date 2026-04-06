@@ -212,11 +212,10 @@ void UMyNetworkSubsystem::ProcessQueuePackets()
 		{
 			if (PacketData.Num() == sizeof(FS_StartPacket))
 			{
-				UE_LOG(LogTemp, Display, TEXT("FS_StartPacket"));
+				UE_LOG(LogTemp, Display, TEXT("FS_StartPacket Received"));
 				FS_StartPacket* Packet = reinterpret_cast<FS_StartPacket*>(PacketData.GetData());
-				FVector StartLocation(Packet->StartLocation.x, Packet->StartLocation.y, Packet->StartLocation.z);
 
-				GameInst->HandleGameStart(StartLocation, Packet->PlayerId);
+				GameInst->HandleGameStart(Packet);
 			}
 			break;
 		}
@@ -225,7 +224,6 @@ void UMyNetworkSubsystem::ProcessQueuePackets()
 		{
 			if (PacketData.Num() == sizeof(FS_MovePacket))
 			{
-				UE_LOG(LogTemp, Display, TEXT("FS_MovePacket"));
 				FS_MovePacket* Packet = reinterpret_cast<FS_MovePacket*>(PacketData.GetData());
 
 				int32 PlayerId = Packet->PlayerId;
@@ -266,6 +264,17 @@ void UMyNetworkSubsystem::ProcessQueuePackets()
 			break;
 		}
 
+
+		case EPacketType::S_ProjectileAxe:
+		{
+			if (PacketData.Num() >= sizeof(FS_ProjectileAxe))
+			{
+				FS_ProjectileAxe* Packet = reinterpret_cast<FS_ProjectileAxe*>(PacketData.GetData());
+				int32 PlayerId = Packet->PlayerId;
+				PlayerMng->HandleCreateProjectile(PlayerId);
+			}
+			break;
+		}
 		}
 	}
 }

@@ -69,3 +69,9 @@ void PacketDispatcher::handleChangeState(char* buffer, int32 playerId)
 
 	Game::get().recvState(packet);
 }
+
+void PacketDispatcher::handleProjectile(char* buffer, int32 playerId)
+{
+	C_ProjectileAxe* packet = reinterpret_cast<C_ProjectileAxe*>(buffer);
+
+}

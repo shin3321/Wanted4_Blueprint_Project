@@ -29,6 +29,13 @@ public:
 	}
 };
 
+struct FPlayerStartInfo
+{
+	int32_t PlayerId;
+	Location StartLocation;
+	bool Iskiller;
+};
+
 enum class EPacketType : uint16_t
 {
 	C_Login = 1,
@@ -44,6 +51,8 @@ enum class EPacketType : uint16_t
 	S_Move,
 	C_ChangeState,
 	S_ChangeState,
+	C_ProjectileAxe,
+	S_ProjectileAxe,
 };
 
 struct FPacketHeader
@@ -112,7 +121,7 @@ struct FS_StartPacket
 {
 	FPacketHeader Header;
 	int32_t PlayerId;
-	Location StartLocation;
+	FPlayerStartInfo StartInfo[5];
 };
 
 struct FC_MovePacket
@@ -145,5 +154,17 @@ struct FS_ChangeStatePacket
 	int32_t PlayerId;
 	uint8 StateLen;
 	char State[1];
+};
+
+struct FC_ProjectileAxe
+{
+	FPacketHeader Header;
+	int32_t PlayerId;
+};
+
+struct FS_ProjectileAxe
+{
+	FPacketHeader Header;
+	int32 PlayerId;
 };
 #pragma pack(pop)

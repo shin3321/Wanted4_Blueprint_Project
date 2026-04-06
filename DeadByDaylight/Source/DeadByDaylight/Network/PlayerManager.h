@@ -41,7 +41,7 @@ public:
 
 	void HandleMove(int32 PlayerId, FVector PlayerLocation, FRotator PlayerRotator);
 	void HandleChangeState(int32 PlayerId, const FString NewState);
-
+	void HandleCreateProjectile(int32 PlayerId);
 
 	UPROPERTY(BlueprintAssignable, Category = "Network")
 	FOnMovePlayer OnMovePlayer;
@@ -57,6 +57,5 @@ public:
 
 private:
 	TMap<int32, TUniquePtr<FPlayerInfo>> PlayerInfos;
-
 	int32 MyPlayerId;
 };

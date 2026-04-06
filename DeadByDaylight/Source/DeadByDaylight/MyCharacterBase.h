@@ -6,6 +6,7 @@
 #include "MyCharacterBase.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRecvStateChange, const FString, NewState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCreateAxe);
 
 class UMyGameInstance;
 
@@ -36,12 +37,22 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "State")
 	FOnRecvStateChange OnRecvStateChange;
 
+	UFUNCTION(BlueprintCallable, Category = "Network")
+	void SendAxe();
+
+	void OnReceiveAxe();
+	UPROPERTY(BlueprintAssignable, Category = "Network")
+	FOnCreateAxe OnCreateAxe;
+
 public:
 	UPROPERTY(BlueprintReadWrite, Category = "Network")
 	FRotator NewTargetRotation;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Network")
 	FVector NewTargetLocation;
+
+	UFUNCTION(BlueprintPure, Category = "Network")
+	int32 GetPlayerId() const { return PlayerId; }
 
 	UFUNCTION(BlueprintCallable, Category = "Network")
 	void SetId(int32 Id) { PlayerId = Id; }

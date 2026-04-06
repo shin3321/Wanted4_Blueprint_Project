@@ -31,6 +31,16 @@ void APlayerManager::HandleChangeState(int32 PlayerId, const FString NewState)
 	}
 }
 
+void APlayerManager::HandleCreateProjectile(int32 PlayerId)
+{
+	if (PlayerId == MyPlayerId)
+		return;
+	if (AMyCharacterBase* Remote = Cast<AMyCharacterBase>(Players.FindRef(PlayerId)))
+	{
+		Remote->OnReceiveAxe();
+	}
+}
+
 void APlayerManager::InsertPlayers(int32 PlayerId, AMyCharacterBase* Player)
 {
 	if (Player)

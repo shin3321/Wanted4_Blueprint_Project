@@ -19,13 +19,25 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	// 컨트롤러를 생성할 때 호출되는 엔진 함수
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Game")
+	void PossessAllPlayers();
+
+	void SpawnPawnAndPossess(APlayerController* NewPlayer);
+
 	virtual APlayerController* SpawnPlayerController(ENetRole InRemoteRole, const FString& Options) override;
 
-public:
+	public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Classes")
 	TSubclassOf<APlayerController> KillerControllerClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Classes")
 	TSubclassOf<APlayerController> SurvivorControllerClass;
-};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Classes")
+	TSubclassOf<APawn> KillerPawnClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Classes")
+	TSubclassOf<APawn> SurvivorPawnClass;
+	};

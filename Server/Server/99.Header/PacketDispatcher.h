@@ -18,6 +18,7 @@ public:
 		REGISTER_HANDLER(EPacketType::C_Ready, handleReady);
 		REGISTER_HANDLER(EPacketType::C_Move, handleMove);
 		REGISTER_HANDLER(EPacketType::C_ChangeState, handleChangeState);
+		REGISTER_HANDLER(EPacketType::C_ProjectileAxe, handleProjectile);
 	}
 	void onReceive(char* buffer, uint16 packetSize, int32 playerId);
 
@@ -34,7 +35,8 @@ private:
 	void handleReady(char* buffer, int32 playerId);
 	void handleMove(char* buffer, int32 playerId);
 	void handleChangeState(char* buffer, int32 playerId);
-
+	void handleProjectile(char* buffer, int32 playerId);
+		
 private:
 	std::map<EPacketType, PacketHandler> _handlers;
 };

@@ -16,6 +16,12 @@ public:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayerReason) override;
 	virtual void Tick(float DeltaTime) override;
+protected:
+	// 빙의될 때 호출되는 엔진 함수 오버라이드
+	virtual void OnPossess(APawn* aPawn) override;
+
+	UFUNCTION(BlueprintPure, Category = "Network")
+	int32 GetPlayerId() const { return PlayerId; }
 
 	UFUNCTION(BlueprintCallable, Category = "Network")
 	void SetId(int32 Id) { PlayerId = Id; }
@@ -30,7 +36,7 @@ protected:
 	FTimerHandle SendPacketTimerHandle;
 
 	UPROPERTY(EditAnywhere, Category = "Network")
-	float NetworkSendInterval = 0.05f;
+	float NetworkSendInterval = 0.01f;
 
 private:
 	APawn* OwnerPlayer;

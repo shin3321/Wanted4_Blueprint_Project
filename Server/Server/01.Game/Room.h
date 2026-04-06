@@ -41,6 +41,9 @@ public:
 	//플레이어들의 상태 변경 함수
 	void sendState(const C_ChangeStatePacket& statePacket);
 
+	//도끼 날리기 함수
+	void sendAxe(int32 playerId);
+
 	void roomBroadcast(void* packet, uint16_t size);
 	void roomBroadcastExcludeMe(int32 playerId, void* packet, uint16_t size);
 	
@@ -53,6 +56,8 @@ private:
 
 	Slot slots[4];
 	EnterLocation enterLocations[5];
+	std::mutex _enterLock;
+	std::mutex _slotLock;
 
 	Location killerLocation = Location(90.f, 170.f, 0.f);
 
@@ -63,4 +68,6 @@ private:
 	std::map<int32, std::shared_ptr<Survivor>> _survivors;
 	std::mutex _survivorLock;
 	std::shared_ptr<Killer> _killer;
+
+
 };

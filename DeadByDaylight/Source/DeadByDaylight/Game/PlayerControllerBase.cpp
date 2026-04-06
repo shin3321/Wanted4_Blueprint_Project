@@ -12,7 +12,10 @@ void APlayerControllerBase::BeginPlay()
 
 	OwnerPlayer = GetPawn();
 	GameInst = Cast<UMyGameInstance>(GetWorld()->GetGameInstance());
-	PlayerId = GameInst->GetMyId();
+	if (GameInst)
+	{
+		PlayerId = GameInst->GetMyId();
+	}
 
 	GetWorldTimerManager().SetTimer(SendPacketTimerHandle, this, &APlayerControllerBase::SendMovePacket, NetworkSendInterval, true);
 }
@@ -26,10 +29,17 @@ void APlayerControllerBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void APlayerControllerBase::OnPossess(APawn* aPawn)
+{
+	Super::OnPossess(aPawn);
+}
+
 void APlayerControllerBase::SendMovePacket()
 {
-	if (!GameInst->bGameStarted)return;
-	if (!OwnerPlayer) return;
+	if (!GameInst || !GameInst->bGameStarted) return;
+	APawn* CurrentPawn = GetPawn();
+	if (!CurrentPawn) return;
+
 	Rotation PlayerRotation(OwnerPlayer->GetActorRotation().Pitch, OwnerPlayer->GetActorRotation().Yaw, OwnerPlayer->GetActorRotation().Roll);
 	Location PlayerLocation(OwnerPlayer->GetActorLocation().X, OwnerPlayer->GetActorLocation().Y, OwnerPlayer->GetActorLocation().Z);
 
@@ -41,4 +51,3 @@ void APlayerControllerBase::SendMovePacket()
 	MovePacket.PlayerRotation = PlayerRotation;
 
 	SEND_PACKET(MovePacket);
-}
